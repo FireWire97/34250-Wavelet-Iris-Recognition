@@ -1,6 +1,0 @@
-clear all, close all, clc
-A = imread("Bliss.png");
-B = rgb2gray(A);
-
-
-n = 
