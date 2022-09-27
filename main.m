@@ -48,3 +48,11 @@ for keep = [.1 .05 .01 .003] % KEEP LARGEST .1 .05 ... WAVELET COEFFICIENTS AND 
     counter=counter+1;
 end
 %set
+
+%% PSNR
+%ref = imread('pout.tif');
+Gnoiz = imnoise(G,'salt & pepper', 0.02);
+
+[peaksnr, snr] = psnr(Gnoiz, G);
+  
+fprintf('\n The Peak-SNR value is %0.4f', peaksnr);
