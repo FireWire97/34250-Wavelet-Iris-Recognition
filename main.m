@@ -1,12 +1,17 @@
 %% IMAGE COMPRESSION AND WAVELETS EXAMPLES
 
 clear all, close all, clc
-I = imread('mclaren.png');
+I = imread('figures/retina1.ppm');
+subplot(1,2,1)
+imshow(I)
 G = rgb2gray(I);
+subplot(1,2,2)
+imshow(G)
 
 %% Wavelet decomposition (2 level)
-n = 2; w = 'db1'; [C,S] = wavedec2(G,n,w); %Daubuchies 1 wavelet in this example
+n = 2; w = 'bior3.5'; [C,S] = wavedec2(G,n,w); %Daubuchies 1 wavelet in this example
 
+%% New section
 % LEVEL 1
 A1 = appcoef2(C,S,w,1); % Aproximation
 [H1 V1 D1] = detcoef2('a',C,S,1); % Details
@@ -31,28 +36,64 @@ axis off, axis tight
 %set(gcf,'Position',[1750 100 1750 2000])
 
 %% Wavelet Compression
-%[C,S]=wavedec2(G,4,'db1');
+% %[C,S]=wavedec2(G,4,'db1');
+% Csort = sort(abs(C(:))); % Sort by magnitude
+% 
+% counter = 1;
+% for keep = [.1 .05 .01 .003] % KEEP LARGEST .1 .05 ... WAVELET COEFFICIENTS AND THRESHOLD EVERYTHING ELSE AFTER 0
+%     subplot(2,2,counter)
+%     thresh = Csort(floor((1-keep)*length(Csort)));
+%     ind = abs(C)>thresh;
+%     Cfilt = C.*ind; % Threshold small indices
+% 
+%     % Plot reconstruction
+%     Arecon = uint8(waverec2(Cfilt,S,w));
+%     imshow(256-uint8(Arecon))  % Plot reconstruction
+%     %title(
+%     counter=counter+1;
+% end
+% %set
+
+
 Csort = sort(abs(C(:))); % Sort by magnitude
-
-counter = 1;
-for keep = [.1 .05 .01 .003] % KEEP LARGEST .1 .05 ... WAVELET COEFFICIENTS AND THRESHOLD EVERYTHING ELSE AFTER 0
-    subplot(2,2,counter)
-    thresh = Csort(floor((1-keep)*length(Csort)));
-    ind = abs(C)>thresh;
-    Cfilt = C.*ind; % Threshold small indices
-
-    % Plot reconstruction
-    Arecon = uint8(waverec2(Cfilt,S,'db1'));
-    imshow(256-uint8(Arecon))  % Plot reconstruction
-    %title(
-    counter=counter+1;
-end
-%set
+keep = .1; % KEEP LARGEST .1 .05 ... WAVELET COEFFICIENTS AND THRESHOLD EVERYTHING ELSE AFTER 0
+thresh = Csort(floor((1-keep)*length(Csort)));
+ind = abs(C)>thresh;
+Cfilt = C.*ind; % Threshold small indices
+figure
+subplot(121)
+% Arecon_first = uint8(waverec2(C,S,w));
+tryfirst = waverec2(C,S,w);
+imshow(256-uint8(tryfirst))
+subplot(122)
+Arecon = uint8(waverec2(Cfilt,S,w));
+imshow(256-uint8(Arecon))  % Plot reconstruction
 
 %% PSNR
 %ref = imread('pout.tif');
-Gnoiz = imnoise(G,'salt & pepper', 0.02);
+%Gnoiz = imnoise(G,'salt & pepper', 0.02);
 
-[peaksnr, snr] = psnr(Gnoiz, G);
-  
-fprintf('\n The Peak-SNR value is %0.4f', peaksnr);
+% Load an image
+clear all, close all, clc
+I = imread('Figures/xmix.jpeg');
+G = rgb2gray(I);
+
+% calculate the psnr vs. bpp
+peaksnrArray = zeros(1,100);
+bppArray = zeros(1,100);
+    
+for i=1:100
+    imwrite(G,'Figures/xmixCompressed.jpeg','Quality',i,'Mode','lossy');
+    compressedG = imread('Figures/xmixCompressed.jpeg');
+    [peaksnr, snr] = psnr(compressedG, G);
+    peaksnrArray(i) = peaksnr;
+    imgPath = dir('Figures/xmixCompressed.jpeg');         
+    filesize = imgPath.bytes;
+    bppArray(i) = filesize;
+end
+
+plot(bppArray, peaksnrArray, 'Linewidth', 4)
+grid on
+title('Image quality loss with different compression rates')
+xlabel('Filesize in bytes') 
+ylabel('PSNR value') 
