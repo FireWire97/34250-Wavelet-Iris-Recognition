@@ -1,0 +1,11 @@
+% Load an image
+
+clear all, close all, clc
+I = imread('Figures/Bliss.png');
+G = rgb2gray(I);
+
+% Apply noise to the picture
+
+noizyG = imnoise(G,'salt & pepper', 0.3);
+%imshow(noizyG);
+
